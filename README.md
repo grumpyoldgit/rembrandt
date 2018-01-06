@@ -1,4 +1,4 @@
-# Rembrandt
+# Rembrandt - DRAFT
 Is a contemporary open source implementation of photobooth software intended for use on a classic Van Gogh 'arcade' photobooth hardware, retrofitted with modern upgrades, such that:
 
 . The original 
@@ -32,7 +32,7 @@ Rembrandt uses
 
 To operate the equipment and interface with the user. 
 
-Specifically, a daemon operates as monitor of the chrome instance that runs the user interface, and also monitors the serial port for incoming button presses and joystick movements, decoding and storing them for retrieval by the front-end. The daemon launches the web browser and provides web content to it via a local HTTP server, along with a json messaging service to notify of hardware events such as coin insert and button presses.
+Specifically, a daemon (installed and running as a windows service) operates as monitor of the chrome instance that runs the user interface, and also monitors the serial port for incoming button presses and joystick movements, decoding and storing them for retrieval by the front-end. The daemon launches the web browser and provides web content to it via a local HTTP server, along with a json messaging service to notify of hardware events such as coin insert and button presses.
 
 It stores all photos on a private S3 bucket and only publishes them to public social media upon the request of the user, and each time from the same accounts configured in the json configuration file.
 
@@ -41,3 +41,12 @@ The configuration file comes with all settings read and used from the file alrea
 ## Other documentation
 
 The manual for the original system is here http://www.segaarcade.com/__assets__/GamePDFs/Games/00093/van-gogh-manual.pdf it outlines the original system, hardware and ownership and maintenance procedures.
+
+
+## Interesting modules to help make it
+
+chrome-launcher
+mocha
+lockfile
+node 8.9.4 and npm 5.6.0
+
