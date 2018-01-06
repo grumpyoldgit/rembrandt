@@ -14,7 +14,9 @@ are all retained, but the
  - printer
  - camera
 
-Where the computer is upgraded to modern windows (we use Windows 7), a modern printer (we use <blah>), a modern camera (we use <xyz>).
+are updated in line with more modern standards.
+
+The computer is upgraded to modern windows (we use Windows 7), a modern printer (we use <blah>), a modern camera (we use <xyz>).
 
 ## User experience
 
