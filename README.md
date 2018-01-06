@@ -1,12 +1,15 @@
 # Rembrandt - DRAFT
 Is a contemporary open source implementation of photobooth software intended for use on a classic Van Gogh 'arcade' photobooth hardware, retrofitted with modern upgrades, such that:
 
-. The original 
+The original 
+
  - coin reception
  - joystick and buttons
  - control board for the above
  - screen
+
 are all retained, but the
+
  - computer
  - printer
  - camera
