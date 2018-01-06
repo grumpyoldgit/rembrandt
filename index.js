@@ -52,18 +52,18 @@ port.on('open', () => {
 
 if (test) {
   port.on('open', () => {
-    port.binding.emitData(buttons["up"]);
+    port.binding.emitData(Buffer.from(buttons["up"].data));
   })
 }
 
 function pressed(button) {
-  console.log(button + "pressed")
+  console.log(button + " pressed")
   presses.push(button);
 }
 
 var buttons = {
   "up": {
-    data:"\x02UPPRS\x03\x01\x9f"
+    data: "\x02UPPRS\x03\x01\x9f"
   },
   "down": {
     data: "\x02DNPRS\x03\x01\x8c"
@@ -85,24 +85,16 @@ var buttons = {
   }
 }
 
-function decode_serial(data) {
-  if (data.length != 9) {
-    throw new UserException("Serial packet with invalid data length received: " + str(data) + " " + str(data.length))
-  }
-  for (button in buttons.keys()) {
-    if (data == button.data) {
+function decode(incoming) {
+  for (button in buttons) {
+    if (incoming.includes (buttons[button].data)) {
       pressed(button)
     }
   }
 }
 
-port.on('data', function(data) {
-  console.log("Received data: " + data)
-  try {
-    decode_serial(data)
-  } catch(err) {
-    return;
-  }
+port.on('data', function(incoming) { // receives node Buffer
+  decode(incoming)
 })
 
 
