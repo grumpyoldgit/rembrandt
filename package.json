@@ -1,0 +1,34 @@
+{
+  "name": "rembrandt",
+  "version": "1.0.0",
+  "description": "Rembrandt is a contemporary open source photobooth implementation in node to run on Windows7 hosts and interface with classic Van Gogh photobooth hardware retrofitted with modern computing resources.",
+  "main": "index.js",
+  "dependencies": {
+    "config": "^1.29.0",
+    "express": "^4.16.2",
+    "node-getopt": "^0.2.3",
+    "serialport": "^6.0.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "index.js test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grumpyoldgit/rembrandt.git"
+  },
+  "keywords": [
+    "photobooth",
+    "photo",
+    "booth",
+    "vangogh",
+    "van",
+    "gogh"
+  ],
+  "author": "Benjamin Winston",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/grumpyoldgit/rembrandt/issues"
+  },
+  "homepage": "https://github.com/grumpyoldgit/rembrandt#readme"
+}
