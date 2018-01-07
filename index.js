@@ -66,6 +66,10 @@ io.on('connection', function(socket) {
     credits--
     io.emit('credit update', credits)
   })
+
+  socket.on('photo taken', function(photo) {
+    console.log(photo);
+  })
 })
 
 io.on('disconnect', function() {
@@ -76,28 +80,6 @@ io.on('disconnect', function() {
 // /static is all the static content for the frontend
 
 app.use('/static', express.static('static'))
-
-app.use(fileUpload());
-
-app.post('/upload', function(req, res) {
-  if (!req.files)
-    return res.sendStatus(400).send('No files were uploaded.')
-
-  if (req.files.length != 4)
-    return res.sendStatus(400).send('Four files needed.')
-  /* 
-  // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
-  var pictures = [req.files.picture1, req.files.picture2, req.files.picture3, req.files.picture4]
- 
-  // Use the mv() method to place the file somewhere on your server
-  sampleFile.mv('/somewhere/on/your/server/filename.jpg', function(err) {
-    if (err)
-      return res.status(500).send(err);
- 
-    res.send('File uploaded!');
-  });
-  */
-});
 
 http.listen(
   config.get('Webserver.port'), 
