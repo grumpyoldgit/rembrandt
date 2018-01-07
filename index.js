@@ -63,8 +63,8 @@ app.get('/keystrokes', function(req, res) {
   presses = []
 })
 
-app.post('/use_a_credit', function(req, res) {
-  res.send(--credits)
+app.post('/consume_credit', function(req, res) {
+  res.send((--credits).toString())
 })
 
 app.use('/static', express.static('static'))
@@ -73,15 +73,13 @@ app.use(fileUpload());
 
 app.post('/upload', function(req, res) {
   if (!req.files)
-    return res.status(400).send('No files were uploaded.')
+    return res.sendStatus(400).send('No files were uploaded.')
 
   if (req.files.length != 4)
-    return res.status(400).send('Four files needed.')
- 
+    return res.sendStatus(400).send('Four files needed.')
+  /* 
   // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
   var pictures = [req.files.picture1, req.files.picture2, req.files.picture3, req.files.picture4]
-
-
  
   // Use the mv() method to place the file somewhere on your server
   sampleFile.mv('/somewhere/on/your/server/filename.jpg', function(err) {
@@ -90,17 +88,11 @@ app.post('/upload', function(req, res) {
  
     res.send('File uploaded!');
   });
+  */
 });
 
 
 app.listen(3000, () => console.log('Example app listening on port 3000!'))
-
-// Launch chrome
-//
-// Launches chrome in kiosk mode to open the app served over /static
-
-// todo
-
 
 // Serial processing
 //
@@ -141,7 +133,8 @@ if (test) {
       }
 
       const http = require('http')
- 
+
+      /* 
       http.get('http://127.0.0.1:3000/keystrokes', (resp) => {
         let data = ''
  
@@ -155,6 +148,7 @@ if (test) {
           console.log("pressed received via HTTP response: " + JSON.parse(data).pressed)
         })
       })
+      */
 
     }).on("error", (err) => {
       console.log("Error: " + err.message);
@@ -214,9 +208,15 @@ port.on('data', function(incoming) { // receives node Buffer
 
 const chromeLauncher = require('chrome-launcher');
 
+var flags = ['--disable-gpu', '--kiosk']
+
+if (test) {
+  flags = ['--disable-gpu']
+}
+
 chromeLauncher.launch({
   startingUrl: 'http://127.0.0.1:3000/static/photobooth.html',
-  chromeFlags: ['--disable-gpu', '--kiosk', '--use-fake-ui-for-media-stream']
+  chromeFlags: flags
 }).then(chrome => {
-  console.log(`Chrome debugging port running on ${chrome.port}`);
+  console.log('Chrome debugging port running on ${chrome.port}');
 });
