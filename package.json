@@ -4,6 +4,7 @@
   "description": "Rembrandt is a contemporary open source photobooth implementation in node to run on Windows7 hosts and interface with classic Van Gogh photobooth hardware retrofitted with modern computing resources.",
   "main": "index.js",
   "dependencies": {
+    "chrome-launcher": "^0.10.1",
     "config": "^1.29.0",
     "express": "^4.16.2",
     "express-fileupload": "^0.3.0",

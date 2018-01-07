@@ -43,15 +43,26 @@ It stores all photos on a private S3 bucket and only publishes them to public so
 
 The configuration file comes with all settings read and used from the file already set to a default value.
 
+## Installation
+
+You must manually install:
+ - nodejs 8.9.4 (which includes npm 5.6.0) from https://nodejs.org/dist/v8.9.4/node-v8.9.4-x86.msi
+ - Google Chrome
+
+Then you need to install the modules that are needed for rembrandt to work. They are in the package.json file, and npm will install them for you by issuing the command:
+
+```
+npm install .
+```
+
+via the command line in the root of this repository.
+
+Finally, you need to allow rembrandt to use the webcam on google chrome, by importing the registry file also in the root of this repository. This will stop the permission dialog when google chrome starts that would otherwise be unpressable and stop the user experience there.
+
 ## Other documentation
 
 The manual for the original system is here http://www.segaarcade.com/__assets__/GamePDFs/Games/00093/van-gogh-manual.pdf it outlines the original system, hardware and ownership and maintenance procedures.
 
 
-## Interesting modules to help make it
 
-chrome-launcher
-mocha
-lockfile
-node 8.9.4 and npm 5.6.0
 

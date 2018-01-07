@@ -1,0 +1,24 @@
+See https://www.chromium.org/administrators/policy-list-3#VideoCaptureAllowed
+
+Data type:
+Boolean [Windows:REG_DWORD]
+Windows registry location for Windows clients:
+Software\Policies\Google\Chrome\VideoCaptureAllowed
+
+VideoCaptureAllowed = True
+
+
+
+VideoCaptureAllowedUrls
+URLs that will be granted access to video capture devices without prompt
+Data type:
+List of strings
+Windows registry location for Windows clients:
+Software\Policies\Google\Chrome\VideoCaptureAllowedUrls
+Windows registry location for Google Chrome OS clients:
+Software\Policies\Google\ChromeOS\VideoCaptureAllowedUrls
+Mac/Linux preference name:
+
+Software\Policies\Google\Chrome\VideoCaptureAllowedUrls\1 = "https://127.0.0.1:3000/static/photobooth.html"
+
+

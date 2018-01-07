@@ -207,3 +207,16 @@ port.on('data', function(incoming) { // receives node Buffer
   decode(incoming)
 })
 
+
+// Launch Chrome
+//
+// Start the frontend in chrome.
+
+const chromeLauncher = require('chrome-launcher');
+
+chromeLauncher.launch({
+  startingUrl: 'http://127.0.0.1:3000/static/photobooth.html',
+  chromeFlags: ['--disable-gpu', '--kiosk', '--use-fake-ui-for-media-stream']
+}).then(chrome => {
+  console.log(`Chrome debugging port running on ${chrome.port}`);
+});
