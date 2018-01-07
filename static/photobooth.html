@@ -8,13 +8,25 @@
   margin-right: auto;
   padding: 0px;
 }
-#camera {
+#camerabody {
+  position: relative;
+}
+#camerabody,#shutter,#camera {
   margin-left: auto;
   margin-right: auto;
   height: 500px;
   width: 600px;
   margin-top: 20px;
   background-color: black;
+}
+#shutter,#camera {
+  position: absolute;
+  display: inline-block;
+  top: 0;
+  left: 0;
+}
+#shutter {
+  z-index: 100;
 }
 .photobooth ul {
   display: none;
@@ -85,25 +97,33 @@ function handle_picture(event, dataUrl) {
   socket.emit('photo taken', dataUrl) // to server
 
   photo_counter++
-  if (photo_counter > 4) {
+
+  if (photo_counter > 4) { 
     socket.emit('credit used')
-    photo_counter = 1
+    // last photo!
+    // here we should display them to the user and only later come back here
+    reset_photos()
   }
+
+  ok_disabled = false // allow another photo
+}
+
+function lift_shutter() {
+  $('#shutter').fadeOut(100)
+}
+
+function lower_shutter() {
+  $('#shutter').fadeIn(100)
 }
 
 function start_camera() {
-  var photobooth = $('#camera').data("photobooth");
-  if (photobooth) {
-    return
-  }
-  $('#camera').photobooth().on("image", handle_picture);
+  $('#camera').photobooth();
+  $('#camera').on("image", handle_picture)
 }
 
 function stop_camera() {
-  var photobooth = $('#camera').data("photobooth");
-  if (photobooth) {
-    photobooth.destroy()
-  }
+  var photobooth = $('#camera').data("photobooth").destroy()
+  $('#camera').data("photobooth", undefined)
 }
 
 function reset_photos() {
@@ -117,14 +137,13 @@ function apply_credits(credits) {
   last_credits = credits
   $('span#credit').text(credits)
   if (credits == 0) {
-    stop_camera()
     setTimeout(function() {
       $('div#credits span#text').css("background-color", "red")
-      reset_photos()
-    }, 5000) // should really be more of a focus on these!
+      lower_shutter()
+    }, 500)
   } else {
     $('div#credits span#text').css("background-color", "green")
-    start_camera()
+    lift_shutter()
   }
 }
 
@@ -157,11 +176,16 @@ socket.on('credit update', function(credits) {
   apply_credits(credits)
 })
 
+var ok_disabled = false
+
 socket.on('button pressed', function(button) {
   console.log('button pressed: ' + button)
   if (button == "ok") {
     if (last_credits > 0) {
-      start_timer()
+      if (!ok_disabled) {
+        ok_disabled = true
+        start_timer()
+      }
     } else {
       $('div#credits')
         .fadeOut(100).fadeIn(100)
@@ -177,6 +201,7 @@ $(document).ready(function() {
   $.get("/credits", function(msg) {
     apply_credits(msg) // in case credits were entered before we started
   })
+  start_camera()
 });
 
 </script>
@@ -184,7 +209,10 @@ $(document).ready(function() {
 <body>
 <div id="page_camera">
 <div id="credits"><span id="text"><span id="credit">0</span> credits</span></div>
-<div id="camera"></div>
+<div id="camerabody">
+  <div id="camera"></div>
+  <div id="shutter"></div>
+</div>
 <div id="countdown"></div>
 <div id="photos">
   <div class="photo" id="photo1"></div>
