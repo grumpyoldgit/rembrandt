@@ -1,0 +1,30 @@
+<html>
+<head>
+<style type="text/css">
+#example {
+    min-height: 300px;
+    min-width: 300px;
+    height: 400px;
+    width: 400px;
+}
+
+#gallery {
+    min-height: 200px;
+    min-width: 200px;
+    height:600px;
+    width:600px;
+}
+</style>
+<script type="text/javascript" src="jquery.2.1.3.min.js" />
+<script type="text/javascript" src="photobooth.0.7_min.js" />
+<script>
+$('#example').photobooth().on("image", function (event, dataUrl) {
+	$("#gallery").append('<img src="' + dataUrl + '" >');
+});
+</script>
+<body>
+<div id="example"></div>
+<div id="gallery"></div>
+</head>
+</body>
+</html>
