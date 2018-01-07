@@ -58,7 +58,7 @@ app.post('/ping', function (req, res) {
   res.send('pong')
 })
 
-app.get('/status', function(req, res) {
+app.get('/keystrokes', function(req, res) {
   res.send(JSON.stringify({credits: credits, pressed: presses}))
   presses = []
 })
