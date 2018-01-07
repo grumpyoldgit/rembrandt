@@ -34,11 +34,18 @@ if (opt.argv[0] == "test") {
 var config = require('config');
 var comport = config.get('Hardware.comport');
 
+// Google drive client
+//
+// Used by the webserver to store uploaded pictures
+
+
+
 // Web server
 //
 // Serves static content as well as results from serial interface.
 
-var express = require('express')
+const express = require('express')
+const fileUpload = require('express-fileupload');
 var app = express()
 
 // https://expressjs.com/en/guide/routing.html
@@ -61,6 +68,30 @@ app.post('/use_a_credit', function(req, res) {
 })
 
 app.use('/static', express.static('static'))
+
+app.use(fileUpload());
+
+app.post('/upload', function(req, res) {
+  if (!req.files)
+    return res.status(400).send('No files were uploaded.')
+
+  if (req.files.length != 4)
+    return res.status(400).send('Four files needed.')
+ 
+  // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
+  var pictures = [req.files.picture1, req.files.picture2, req.files.picture3, req.files.picture4]
+
+
+ 
+  // Use the mv() method to place the file somewhere on your server
+  sampleFile.mv('/somewhere/on/your/server/filename.jpg', function(err) {
+    if (err)
+      return res.status(500).send(err);
+ 
+    res.send('File uploaded!');
+  });
+});
+
 
 app.listen(3000, () => console.log('Example app listening on port 3000!'))
 
@@ -111,7 +142,7 @@ if (test) {
 
       const http = require('http')
  
-      http.get('http://127.0.0.1:3000/status', (resp) => {
+      http.get('http://127.0.0.1:3000/keystrokes', (resp) => {
         let data = ''
  
         resp.on('data', (chunk) => {
