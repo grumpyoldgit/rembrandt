@@ -2,7 +2,6 @@
 
 var version = "1.0.0"
 var credits = 0 // current credits
-var presses = [] // array of presses
 
 var test = false // for mocking serial ports
 
@@ -47,6 +46,8 @@ var comport = config.get('Hardware.comport');
 const express = require('express')
 const fileUpload = require('express-fileupload');
 var app = express()
+var http = require('http').Server(app)
+var io = require('socket.io')(http)
 
 // https://expressjs.com/en/guide/routing.html
 
@@ -54,18 +55,25 @@ app.get('/ping', function (req, res) {
   res.send('pong')
 })
 
-app.post('/ping', function (req, res) {
-  res.send('pong')
+app.get('/credits', function (req, res) {
+  res.send(credits.toString())
 })
 
-app.get('/keystrokes', function(req, res) {
-  res.send(JSON.stringify({credits: credits, pressed: presses}))
-  presses = []
+io.on('connection', function(socket) {
+  console.log('connection from frontend received')
+
+  socket.on('credit used', function() {
+    credits--
+    io.emit('credit update', credits)
+  })
 })
 
-app.post('/consume_credit', function(req, res) {
-  res.send((--credits).toString())
+io.on('disconnect', function() {
+  console.log('connection lost to frontend')
 })
+
+
+// /static is all the static content for the frontend
 
 app.use('/static', express.static('static'))
 
@@ -91,8 +99,11 @@ app.post('/upload', function(req, res) {
   */
 });
 
-
-app.listen(3000, () => console.log('Example app listening on port 3000!'))
+http.listen(
+  config.get('Webserver.port'), 
+  config.get('Webserver.host'), 
+  () => console.log('Example app listening on port 3000!')
+)
 
 // Serial processing
 //
@@ -157,11 +168,12 @@ if (test) {
 }
 
 function pressed(button) {
-  console.log(button + " pressed")
+  console.log("button pressed: " + button)
   if (button == "coin") {
     credits++;
+    io.emit('credit update', credits.toString(), {for:'everyone'})
   } else {
-    presses.push(button);
+    io.emit('button pressed', button, {for:'everyone'})
   }
 }
 
@@ -200,7 +212,6 @@ function decode(incoming) {
 port.on('data', function(incoming) { // receives node Buffer
   decode(incoming)
 })
-
 
 // Launch Chrome
 //

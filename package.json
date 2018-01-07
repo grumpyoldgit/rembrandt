@@ -10,6 +10,7 @@
     "express-fileupload": "^0.3.0",
     "node-getopt": "^0.2.3",
     "serialport": "^6.0.4",
+    "socket.io": "^2.0.4",
     "tty": "^1.0.1"
   },
   "devDependencies": {},
