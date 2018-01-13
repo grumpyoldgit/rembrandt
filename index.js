@@ -192,7 +192,7 @@ function decode(command) {
 }
 
 var instream = new Buffer("")
-var okbuffer = new Buffer(buttons["ok"])
+var okbuffer = new Buffer(buttons["ok"].data)
 
 function reassemble(incoming) {
   if (comport.debug) {
