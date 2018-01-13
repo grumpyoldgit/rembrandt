@@ -135,7 +135,7 @@ if (test) {
 
     process.stdin.on('keypress', function (str, key) {
       if (key.sequence in keymap) {
-        port.binding.emitData(Buffer.from(buttons[keymap[key.sequence]].data))
+        port.binding.emitData(Buffer.from(buttons[keymap[key.sequence]].data, "ascii"))
       }
       
       if (key.name == 'q') {
