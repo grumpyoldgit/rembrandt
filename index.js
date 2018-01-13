@@ -160,25 +160,25 @@ function pressed(button) {
 
 var buttons = {
   "up": {
-    data: "\x02UPPRS\x03\x01\x9f"
+    data: "\x02UPPRS\x03\x01\xc2\x9f"
   },
   "down": {
-    data: "\x02DNPRS\x03\x01\x8c"
+    data: "\x02DNPRS\x03\x01\xc2\x8c"
   },
   "left": {
-    data: "\x02LFPRS\x03\x01\x8c"
+    data: "\x02LFPRS\x03\x01\xc2\x8c"
   },
   "right": {
-    data: "\x02RIPRS\x03\x01\x95"
+    data: "\x02RIPRS\x03\x01\xc2\x95"
   },
   "ok": {
-    data: "\x02OKPRS\x03\x01\x94"
+    data: "\x02OKPRS\x03\x01\xc2\x94"
   },
   "cancel": {
-    data: "\x02CCPRS\x03\x01\x80"
+    data: "\x02CCPRS\x03\x01\xc2\x80"
   },
   "coin": {
-    data: "\x02SC\x00\x00\x01\x03\x00\x9c"
+    data: "\x02SC\x00\x00\x01\x03\x00\xc2\x9c"
   }
 }
 
