@@ -211,9 +211,9 @@ function reassemble(incoming) {
   if (offset != -1) { // found!
     console.log("found 2 at offset " + offset.toString())
 
-    if ((instream.length - offset) >= 9) {
-      command = instream.slice(offset, offset + 10)
-      instream = instream.slice(offset + 10)
+    if ((instream.length - offset) >= 10) {
+      command = instream.slice(offset, offset + 11)
+      instream = instream.slice(offset + 11)
 
       console.log("command is:\n" + command.toString('hex'))
       console.log("instream is now:\n" + instream.toString('hex'))
