@@ -123,9 +123,6 @@ port.on('open', () => {
   console.log('Port opened: ', port.path)
 })
 
-if (comport.debug) {
-}
-
 if (test) {
   port.on('open', () => {
     var readline = require('readline')
@@ -185,39 +182,43 @@ var buttons = {
   }
 }
 
-function decode(incoming) {
+function decode(command) {
   for (button in buttons) {
-    if (incoming.includes (buttons[button].data)) {
+//    console.log("comparing: " + command.toString('hex') + " with " + Buffer.from(buttons[button].data).toString('hex'))
+    if (command.includes (buttons[button].data)) {
       pressed(button)
     }
   }
 }
 
-var reassemble = new Buffer("")
+var instream = new Buffer("")
 
-if (comport.debug) {
-  port.on('data', function(incoming) { // hexdump incoming data
-    var command = new Buffer("");
-    var l = reassemble.length + incoming.length
-    reassemble = Buffer.concat([reassemble, incoming], l)
+function reassemble(incoming) {
+  var command = new Buffer("");
+  var l = instream.length + incoming.length
+  instream = Buffer.concat([instream, incoming], l)
 
-    var offset = reassemble.indexOf(2) // search for a command
-    if (offset != -1) { // found!
-      if ((reassemble.length - offset) >= 9) {
-        command = reassemble.slice(offset, offset + 9)
-        reassemble = reassemble.slice(offset+9)
+  var offset = instream.indexOf(2) // search for a command
 
+  if (offset != -1) { // found!
+    if ((instream.length - offset) >= 9) {
+      command = instream.slice(offset, offset + 10)
+      instream = instream.slice(offset + 10)
+
+      if (comport.debug) {
         console.log("found command: ")
-       for (const pair of command.entries()) {
-          console.log(pair);
+        for (const pair of command.entries()) {
+          console.log(pair)
         }
       }
+
+      decode(command)
     }
-  })
+  }
 }
 
 port.on('data', function(incoming) { // receives node Buffer
-  decode(incoming)
+  reassemble(incoming)
 })
 
 // Launch Chrome
