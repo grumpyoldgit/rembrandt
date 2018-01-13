@@ -201,7 +201,7 @@ function decode(instream) {
 }
 
 var instream = new Buffer("")
-var okbuffer = new Buffer(buttons["ok"].data)
+var okbuffer = new Buffer.from(buttons["ok"].data, "ascii")
 
 function reassemble(incoming) {
   if (comport.debug) {
