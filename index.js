@@ -225,7 +225,7 @@ function reassemble(incoming) {
   console.log("found 2 at offset " + offset.toString())
   console.log("instream.length is: " + instream.length + " okbuffer length is: "+ okbuffer.length)
 
-  if ((instream.length - offset) <= okbuffer.length) {
+  if ((instream.length - offset) < okbuffer.length) {
     console.log("not enough data")
     return
   }
