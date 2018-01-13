@@ -185,7 +185,7 @@ var buttons = {
 function decode(instream) {
   for (button in buttons) {
     console.log("comparing: " + instream.toString('hex') + " with " + Buffer.from(buttons[button].data).toString('hex'))
-    if (instream.includes (buttons[button].data)) {
+    if (instream.includes (Buffer.from(buttons[button].data))) {
       pressed(button)
     }
   }
@@ -222,6 +222,7 @@ function reassemble(incoming) {
   }
 
   decode(instream)
+  instream = new Buffer("")
 }
 
 port.on('data', function(incoming) { // receives node Buffer
