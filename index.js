@@ -219,10 +219,7 @@ function reassemble(incoming) {
       console.log("instream is now:\n" + instream.toString('hex'))
 
       if (comport.debug) {
-        console.log("found command: ")
-        for (const pair of command.entries()) {
-          console.log(pair)
-        }
+        console.log("found command: " + command.toString('hex'))
       }
 
       decode(command)
