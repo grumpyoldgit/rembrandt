@@ -45,10 +45,32 @@ The configuration file comes with all settings read and used from the file alrea
 
 ## Installation
 
+Follow these steps, in order...
+
+### OS
+
+Firstly install your operating system. Install window 10 64-bit Enterprise with the following options:
+ - DO NOT use express settings. Turn off all installation settings except for the last one about downloading windows updates faster.
+ - Join local active directory domain (not Azure cloud!)
+ - Not now, Cortana
+When you get to the desktop
+ - Yes you do want it discoverable via the network
+
+### Application software
+
 You must manually install:
- - git for windows 2.15.1 from https://github.com/git-for-windows/git/releases/download/v2.15.1.windows.2/Git-2.15.1.2-64-bit.exe
- - nodejs 8.9.4 (which includes npm 5.6.0) from https://nodejs.org/dist/v8.9.4/node-v8.9.4-x64.msi
  - Google Chrome
+ - [testing only] If you're using a VM for testing rather than a real machine, install vmware tools using 'typical' settings
+ - Set chrome to be the default browser
+ - git for windows 2.15.1 from https://github.com/git-for-windows/git/releases/download/v2.15.1.windows.2/Git-2.15.1.2-64-bit.exe (all default options)
+ - nodejs 8.9.4 (which includes npm 5.6.0) from https://nodejs.org/dist/v8.9.4/node-v8.9.4-x64.msi
+
+You need to clone this repo via the command prompt:
+```
+cd Desktop
+git clone https://github.com/grumpyoldgit/rembrandt.git
+cd rembrandt
+```
 
 Then you need to install the modules that are needed for rembrandt to work. They are in the package.json file, and npm will install them for you by issuing the command:
 
@@ -56,9 +78,39 @@ Then you need to install the modules that are needed for rembrandt to work. They
 npm install .
 ```
 
-via the command line in the root of this repository.
+via the command line in the rembrandt directory that you moved into above.
 
-Finally, you need to allow rembrandt to use the webcam on google chrome, by importing the registry file also in the root of this repository. This will stop the permission dialog when google chrome starts that would otherwise be unpressable and stop the user experience there.
+### Apply Chrome group policy
+
+Finally, you need to allow rembrandt to use the webcam on google chrome, so that users aren't prompted each time if they want to open the camera. To do that we use group policy as follows:
+ - download https://dl.google.com/dl/edgedl/chrome/policy/policy_templates.zip
+ - extract the file chrome.adm to the desktop from the folder adm/en-US/ within the zip file you just downloaded
+ - Open gpedit.msc
+ - Right click "Administrative Templates"
+ - "Add/Remove Templates"
+ - Add the template you just extracted ("chrome.adm")
+ - Change the setting for "URLs that will be granted access to video devices without prompt" by adding the following URL:
+  - http://127.0.0.1:3000/static/photobooth.html
+
+Confirm that the setting has loaded into chrome by visiting chrome://policy
+
+### Test the installation
+
+You can test the installation with the following command:
+
+```
+node index.js test
+```
+
+Allow access in the firewall dialog that pops up when the node application starts.
+
+### Launch rembrandt
+
+You can launch rembrandt with the following command:
+
+```
+node index.js
+```
 
 ## Other documentation
 
