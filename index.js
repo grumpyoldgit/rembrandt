@@ -192,7 +192,7 @@ function hexdump(buffer) {
 
 function decode(instream) {
   for (button in buttons) {
-    var b = new Buffer.from(buttons[button].data, "utf-8")
+    var b = new Buffer.from(buttons[button].data, "ascii")
     console.log("comparing: " + hexdump(instream) + " with " + hexdump(b))
     if (instream.includes(b)) {
       pressed(button)
