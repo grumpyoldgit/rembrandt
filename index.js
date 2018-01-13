@@ -182,10 +182,10 @@ var buttons = {
   }
 }
 
-function decode(command) {
+function decode(instream) {
   for (button in buttons) {
-    console.log("comparing: " + command.toString('hex') + " with " + Buffer.from(buttons[button].data).toString('hex'))
-    if (command.includes (buttons[button].data)) {
+    console.log("comparing: " + instream.toString('hex') + " with " + Buffer.from(buttons[button].data).toString('hex'))
+    if (instream.includes (buttons[button].data)) {
       pressed(button)
     }
   }
@@ -199,7 +199,6 @@ function reassemble(incoming) {
     console.log("incoming:\n" + incoming.toString('hex'))
   }
 
-  var command = new Buffer("");
   var l = instream.length + incoming.length
   instream = Buffer.concat([instream, incoming], l)
 
@@ -209,23 +208,20 @@ function reassemble(incoming) {
 
   var offset = instream.indexOf(2) // search for a command
 
-  if (offset != -1) { // found!
-    console.log("found 2 at offset " + offset.toString())
-
-    if ((instream.length - offset) >= okbuffer.length) {
-      command = instream.slice(offset, offset + okbuffer.length)
-      instream = instream.slice(offset + okbuffer.length)
-
-      console.log("command is:\n" + command.toString('hex'))
-      console.log("instream is now:\n" + instream.toString('hex'))
-
-      if (comport.debug) {
-        console.log("found command: " + command.toString('hex'))
-      }
-
-      decode(command)
-    }
+  if (offset == -1) {
+    console.log("no command in instream")
+    return
   }
+
+  console.log("found 2 at offset " + offset.toString())
+  console.log("instream.length is: " + instream.length + " okbuffer length is: "+ okbuffer.length)
+
+  if ((instream.length - offset) <= okbuffer.length-1) {
+    console.log("not enough data")
+    return
+  }
+
+  decode(instream)
 }
 
 port.on('data', function(incoming) { // receives node Buffer
