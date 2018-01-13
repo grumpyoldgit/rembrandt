@@ -112,6 +112,14 @@ You can launch rembrandt with the following command:
 node index.js
 ```
 
+### Updating rembrandt
+
+When new code is available on github in this repo, you can get the latest changes with a simple command, executed in the rembrand directory:
+
+```
+git pull
+```
+
 ## Other documentation
 
 The manual for the original system is here http://www.segaarcade.com/__assets__/GamePDFs/Games/00093/van-gogh-manual.pdf it outlines the original system, hardware and ownership and maintenance procedures.
