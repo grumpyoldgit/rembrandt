@@ -184,7 +184,7 @@ var buttons = {
 
 function decode(command) {
   for (button in buttons) {
-//    console.log("comparing: " + command.toString('hex') + " with " + Buffer.from(buttons[button].data).toString('hex'))
+    console.log("comparing: " + command.toString('hex') + " with " + Buffer.from(buttons[button].data).toString('hex'))
     if (command.includes (buttons[button].data)) {
       pressed(button)
     }
