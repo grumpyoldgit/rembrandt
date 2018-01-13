@@ -46,7 +46,8 @@ The configuration file comes with all settings read and used from the file alrea
 ## Installation
 
 You must manually install:
- - nodejs 8.9.4 (which includes npm 5.6.0) from https://nodejs.org/dist/v8.9.4/node-v8.9.4-x86.msi
+ - git for windows 2.15.1 from https://github.com/git-for-windows/git/releases/download/v2.15.1.windows.2/Git-2.15.1.2-64-bit.exe
+ - nodejs 8.9.4 (which includes npm 5.6.0) from https://nodejs.org/dist/v8.9.4/node-v8.9.4-x64.msi
  - Google Chrome
 
 Then you need to install the modules that are needed for rembrandt to work. They are in the package.json file, and npm will install them for you by issuing the command:
