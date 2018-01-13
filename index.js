@@ -201,7 +201,7 @@ function reassemble(incoming) {
   var offset = instream.indexOf(2) // search for a command
 
   if (offset != -1) { // found!
-    if ((instream.length - offset) >= 9) {
+    if ((instream.length - offset) >= 10) {
       command = instream.slice(offset, offset + 10)
       instream = instream.slice(offset + 10)
 
