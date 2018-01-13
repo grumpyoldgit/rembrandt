@@ -30,8 +30,8 @@ if (opt.argv[0] == "test") {
 
 // load config
 
-var config = require('config');
-var comport = config.get('Hardware.comport');
+var config = require('config')
+var comport = config.get('Hardware.comport')
 
 // Google drive client
 //
@@ -44,7 +44,7 @@ var comport = config.get('Hardware.comport');
 // Serves static content as well as results from serial interface.
 
 const express = require('express')
-const fileUpload = require('express-fileupload');
+const fileUpload = require('express-fileupload')
 var app = express()
 var http = require('http').Server(app)
 var io = require('socket.io')(http)
@@ -70,6 +70,23 @@ io.on('connection', function(socket) {
   socket.on('photo taken', function(photo) {
     console.log(photo);
   })
+
+  /*
+  // create a watchdog timer that pings the client. If a ping isn't returned, kill it and restart
+
+  socket.on('pong', function() {
+    this.last = new Date().getTime()
+  })
+
+  socket.watchdog = setInterval(function (socket) {
+    if (this.last < (new Date().getTime() - 50000)) {
+      // kill chrome and restart it..
+      console.log("no chrome instance")
+      clearInterval(socket.watchdog)
+    }
+    socket.emit('ping');
+  }, 1000)
+  */
 })
 
 io.on('disconnect', function() {
@@ -96,15 +113,18 @@ var SerialPort = require(test ? "serialport/test" : "serialport")
 
 if (test) {
   MockBinding = SerialPort.Binding
-  comport = "/dev/ROBOT"
-  MockBinding.createPort(comport, { echo: true, record: true })
+  comport.name = "/dev/ROBOT"
+  MockBinding.createPort(comport.name, { echo: true, record: true })
 }
 
-var port = new SerialPort(comport)
+var port = new SerialPort(comport.name)
 
 port.on('open', () => {
   console.log('Port opened: ', port.path)
 })
+
+if (comport.debug) {
+}
 
 if (test) {
   port.on('open', () => {
@@ -124,24 +144,6 @@ if (test) {
       if (key.name == 'q') {
         process.exit(0)
       }
-
-      const http = require('http')
-
-      /* 
-      http.get('http://127.0.0.1:3000/keystrokes', (resp) => {
-        let data = ''
- 
-        resp.on('data', (chunk) => {
-         data += chunk
-        })
- 
-        resp.on('end', () => {
-          console.log(data)
-          console.log("credits received via HTTP response: " + JSON.parse(data).credits)
-          console.log("pressed received via HTTP response: " + JSON.parse(data).pressed)
-        })
-      })
-      */
 
     }).on("error", (err) => {
       console.log("Error: " + err.message);
@@ -189,6 +191,15 @@ function decode(incoming) {
       pressed(button)
     }
   }
+}
+
+if (comport.debug) {
+  port.on('data', function(incoming) { // hexdump incoming data
+    console.log("debug serial data: ")
+    for (const pair of incoming.entries()) {
+      console.log(pair);
+    }
+  })
 }
 
 port.on('data', function(incoming) { // receives node Buffer

@@ -1,6 +1,9 @@
 {
 	"Hardware": {
-		"comport" : "COM1"	
+		"comport" : {
+			"name": "COM1",
+			"debug": true
+		}
 	},
 	"Webserver": {
 		"port": 3000,
