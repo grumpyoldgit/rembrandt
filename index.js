@@ -193,11 +193,25 @@ function decode(incoming) {
   }
 }
 
+var reassemble = new Buffer("")
+
 if (comport.debug) {
   port.on('data', function(incoming) { // hexdump incoming data
-    console.log("debug serial data: ")
-    for (const pair of incoming.entries()) {
-      console.log(pair);
+    var command = new Buffer("");
+    var l = reassemble.length + incoming.length
+    reassemble = Buffer.concat([reassemble, incoming], l)
+
+    var offset = reassemble.indexOf(2) // search for a command
+    if (offset != -1) { // found!
+      if ((reassemble.length - offset) >= 9) {
+        command = reassemble.slice(offset, offset + 9)
+        reassemble = reassemble.slice(offset+9)
+
+        console.log("found command: ")
+       for (const pair of command.entries()) {
+          console.log(pair);
+        }
+      }
     }
   })
 }
