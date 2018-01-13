@@ -182,10 +182,19 @@ var buttons = {
   }
 }
 
+function hexdump(buffer) {
+  var h = ""
+  for (const value of buffer.values()) {
+    h += "\\x" + value.toString(16, 2)
+  }
+  return h
+}
+
 function decode(instream) {
   for (button in buttons) {
-    console.log("comparing: " + instream.toString('hex') + " with " + Buffer.from(buttons[button].data).toString('hex'))
-    if (instream.includes (Buffer.from(buttons[button].data))) {
+    var b = new Buffer.from(buttons[button].data, "utf-8")
+    console.log("comparing: " + hexdump(instream) + " with " + hexdump(b))
+    if (instream.includes(b)) {
       pressed(button)
     }
   }
