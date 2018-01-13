@@ -114,7 +114,7 @@ node index.js
 
 ### Updating rembrandt
 
-When new code is available on github in this repo, you can get the latest changes with a simple command, executed in the rembrand directory:
+When new code is available on github in this repo, you can get the latest changes with a simple command, executed in the rembrandt directory:
 
 ```
 git pull
