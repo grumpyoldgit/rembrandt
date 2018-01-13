@@ -194,16 +194,29 @@ function decode(command) {
 var instream = new Buffer("")
 
 function reassemble(incoming) {
+  if (comport.debug) {
+    console.log("incoming:\n" + incoming.toString('hex'))
+  }
+
   var command = new Buffer("");
   var l = instream.length + incoming.length
   instream = Buffer.concat([instream, incoming], l)
 
+  if (comport.debug) {
+    console.log("reassembled instream:\n" + instream.toString('hex'))
+  }
+
   var offset = instream.indexOf(2) // search for a command
 
   if (offset != -1) { // found!
+    console.log("found 2 at offset " + offset.toString())
+
     if ((instream.length - offset) >= 10) {
       command = instream.slice(offset, offset + 10)
       instream = instream.slice(offset + 10)
+
+      console.log("command is:\n" + command.toString('hex'))
+      console.log("instream is now:\n" + instream.toString('hex'))
 
       if (comport.debug) {
         console.log("found command: ")
