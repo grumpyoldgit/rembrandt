@@ -197,6 +197,23 @@ function apply_credits(c) {
   }
 }
 
+function start_camera() {
+  $('#camera').photobooth();
+  $('#camera').on("image", function(event, dataUrl) {
+    photos.trigger("booth:photos:display", [dataUrl]) // show photo on screen
+    socket.emit('photo taken', dataUrl) // to server
+
+    photo++
+
+    if (photo > 2) { // last photo!
+      socket.emit("credit used")
+      page.trigger("booth:review")
+    } else {
+      booth.data("state", "ready")
+    }
+  })
+}
+
 $(document).ready(function() {
 
   // populate the page objects for later use
@@ -216,21 +233,6 @@ $(document).ready(function() {
   })
 
   photo = 0
-
-  $('#camera').photobooth();
-  $('#camera').on("image", function(event, dataUrl) {
-    photos.trigger("booth:photos:display", [dataUrl]) // show photo on screen
-    socket.emit('photo taken', dataUrl) // to server
-
-    photo++
-
-    if (photo > 2) { // last photo!
-      socket.emit("boot:credit_used")
-      page.trigger("booth:review")
-    } else {
-      booth.data("state", "ready")
-    }
-  })
 
   booth.data("state", "ready")
 
@@ -263,6 +265,7 @@ $(document).ready(function() {
 
   welcome.on("booth:credits", function(event) {
     if (credits > 0) {
+      start_camera()
       $('html, body').animate({
         scrollLeft: booth.offset().left
       }, 2000)
