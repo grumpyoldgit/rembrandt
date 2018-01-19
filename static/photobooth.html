@@ -1,83 +1,131 @@
 <html>
 <head>
 <style type="text/css">
-#page_camera {
-  display: block;
-  width: 700px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 0px;
+html {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
-#camerabody {
-  position: relative;
+#pages {
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  width: 3072px;
+  height: 768px;
+  font-size: 0; /* hack for the space between inline-block elements */
 }
-#camerabody,#shutter,#camera {
-  margin-left: auto;
-  margin-right: auto;
-  height: 500px;
-  width: 600px;
-  margin-top: 20px;
-  background-color: black;
-}
-#shutter,#camera {
-  position: absolute;
+.page {
+  font-size: 12pt; /* end of hack for the space between inline-block elements */
   display: inline-block;
-  top: 0;
-  left: 0;
+  vertical-align: top;
+  margin: 0;
+  padding: 0;
+  width: 1024px;
+  height: 768px;
+  background: white url("popcorn.png");
+  background-size: 341px;
 }
-#shutter {
-  z-index: 100;
+#welcome .credits {
+  display: block;
+  width: 200px;
+  line-height: 200px;
+  margin: 250px auto;
+  padding: 10px;
+  border-radius: 200px;
+  color: white;
+  text-align: center;
+  font-size: 30pt;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+#credits, #credits span {
+  display: block;
+  width: 100px;
+  line-height: 30px;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 25px;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+#booth .timer {
+  display: none;
+  position: absolute;
+  z-index: 1000;
+  margin: 0px 0 0 40px;
+  width: 100px;
+  line-height: 100px;
+  font-size: 32pt;
+  background: rgb(63, 186, 83);
+  color: white;
+  text-align: center;
+  vertical-align: middle;
+  border-radius: 100px;
+}
+#camera {
+  display: block;
+  margin: -80px auto 0px auto;
+  width: 680px;
+  height: 512px;
 }
 .photobooth ul {
   display: none;
 }
-div#credits {
-  display: block;
-  width: 700px;
-  padding: 0;
-  margin-top: 20px;
-  margin-bottom: 30px;
-  text-align: center;
-  font-size: 16pt;
-}
-div#credits span#text {
-  margin-left: auto;
-  margin-right: auto;
-  padding: 10px;
-  background-color: red;
-}
 #photos {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 20px;
-  width: 460px;
-  height: 80px;
+  width: 680px;
+  margin: 10px auto;
+}
+#photos .photo, #photos .photo img {
+  width: 220px;
+  height: 170px;
 }
 #photos .photo {
   display: inline-block;
-  width: 110px;
-  height: 75px;
-  background-color: black;
+  border: 1px dotted black;
 }
-#photos .photo img {
-  display: inline;
-  width: 100px;
-  height: 75px;
+#review {
+  background: rgb(237, 242, 104) url("receipt_printer.png") no-repeat center bottom;
+  background-size: 500px 500px;
 }
-#countdown {
-  position: absolute;
-  display: none;
-  z-index: 100;
-  width: 100px;
-  height: 100px;
-  background-color: blue;
+#review #message {
   text-align: center;
+  font-size: 24pt;
+  background: black;
   color: white;
-  left: 60px;
-  top: 210px;
-  margin: 20px;
-  font-size: 72pt;
+  border-radius: 25px;
+  margin: 10px auto;
+  width: 600px;
+  padding: 5px;
+  letter-spacing: 2px;
+}
+#review #strip {
+  background: black;
+  height: 170px;
+  width: 680px;
+  margin: 20px auto 20px auto;
+}
+#review #strip .photo, #review #strip .photo img {
+  width: 220px;
+  height: 170px;
+}
+#review #strip .photo {
+  display: inline-block;
+  border: 1px dotted black;
+}
+#review .timer {
+  text-align: center;
+  background: black;
+  width: 300px;
+  height: 100px;
+  line-height: 100px;
+  letter-spacing: 2px;
+  padding: 5px;
+  color: white;
+  border-radius: 25px;
+  font-size: 24pt;
+  margin: 10px auto;
 }
 </style>
 <script type="text/javascript" src="jquery.2.1.3.min.js"></script>
@@ -87,139 +135,317 @@ div#credits span#text {
 
 var socket = io()
 
-var last_credits = 0
-var photo_counter = 1
+const NO_CREDITSCOLOR = "rgb(186, 63, 63)"
+const CREDITSCOLOR = "rgb(63, 186, 83)"
 
-function handle_picture(event, dataUrl) {
-  var div = "#photo" + photo_counter.toString()
-  $(div).append('<img src="' + dataUrl + '" ></div>')
+/* State Machine (implemented as page object and states below):
 
-  socket.emit('photo taken', dataUrl) // to server
+Welcome - no credits
+Welcome - credits
 
-  photo_counter++
+Booth - credits - not started
+Booth - credits - taking photo 1
+Booth - credits - taking photo 2
+Booth - credits - taking photo 3
 
-  if (photo_counter > 4) { 
-    socket.emit('credit used')
-    // last photo!
-    // here we should display them to the user and only later come back here
-    reset_photos()
-  }
+Review - waiting for OK to print
+Review - printing
 
-  ok_disabled = false // allow another photo
-}
+*/
 
-function lift_shutter() {
-  $('#shutter').fadeOut(100)
-}
+// pages
 
-function lower_shutter() {
-  $('#shutter').fadeIn(100)
-}
+var welcome
+var booth
+var review
 
-function start_camera() {
-  $('#camera').photobooth();
-  $('#camera').on("image", handle_picture)
-}
+// currently-focused page
 
-function stop_camera() {
-  var photobooth = $('#camera').data("photobooth").destroy()
-  $('#camera').data("photobooth", undefined)
-}
+var page
 
-function reset_photos() {
-  $('#photos img').each(function (i, obj) {
-    obj.remove()
-  })
-  photo_counter = 1
-}
+var photo // number of photo
+var photos // photos object
 
-function apply_credits(credits) {
-  last_credits = credits
-  $('span#credit').text(credits)
-  if (credits == 0) {
-    setTimeout(function() {
-      $('div#credits span#text').css("background-color", "red")
-      lower_shutter()
-    }, 500)
-  } else {
-    $('div#credits span#text').css("background-color", "green")
-    lift_shutter()
-  }
-}
+var timer
 
-var timer_seconds_left
-var timer_interval
-
-function take_photo() {
-  $('li.trigger').click() // take the photo
-}
-
-function tick_timer() {
-  if (timer_seconds_left == 1) {
-    clearInterval(timer_interval)
-    $('#countdown').fadeOut(100)
-    take_photo();
-  } else {
-    timer_seconds_left--
-    $('#countdown').text(timer_seconds_left.toString())
-  }
-}
-
-function start_timer() {
-  timer_seconds_left = 3
-  $('#countdown').text(timer_seconds_left.toString())
-  $('#countdown').css("display", "inline-block")
-  timer_interval = setInterval(tick_timer, 1000)
-}
 
 socket.on('credit update', function(credits) {
   apply_credits(credits)
 })
 
-var ok_disabled = false
-
 socket.on('button pressed', function(button) {
-  console.log('button pressed: ' + button)
-  if (button == "ok") {
-    if (last_credits > 0) {
-      if (!ok_disabled) {
-        ok_disabled = true
-        start_timer()
-      }
-    } else {
-      $('div#credits')
-        .fadeOut(100).fadeIn(100)
-        .fadeOut(100).fadeIn(100)
-        .fadeOut(100).fadeIn(100)
-        .fadeOut(100).fadeIn(100)
-        .fadeOut(100).fadeIn(100)
-    }
-  }
+  page.trigger("booth:button:" + button) // bubble message to current page
 })
 
+var credits = 0
+
+function apply_credits(c) {
+  credits = c
+  var txt = credits.toString() + " credit"
+  if (credits != 1) {
+    txt += "s"
+  }
+  $('.credits').text(txt)
+
+  if (credits == 0) {
+    setTimeout(function() {
+      $('.credits').css("background-color", NO_CREDITSCOLOR)
+    }, 500)
+  } else {
+    $('.credits').css("background-color", CREDITSCOLOR)
+    page.trigger("booth:credits") // trigger currently-focused page
+  }
+}
+
 $(document).ready(function() {
+
+  // populate the page objects for later use
+
+  welcome = $('#pages #welcome')
+  booth = $('#pages #booth')
+  review = $('#pages #review')
+
+  // initial page state
+
+  $('html, body').animate({
+        scrollLeft: welcome.offset().left
+  }, 10)
+
   $.get("/credits", function(msg) {
     apply_credits(msg) // in case credits were entered before we started
   })
-  start_camera()
-});
+
+  photo = 0
+
+  $('#camera').photobooth();
+  $('#camera').on("image", function(event, dataUrl) {
+    photos.trigger("booth:photos:display", [dataUrl]) // show photo on screen
+    socket.emit('photo taken', dataUrl) // to server
+
+    photo++
+
+    if (photo > 2) { // last photo!
+      socket.emit("boot:credit_used")
+      page.trigger("booth:review")
+    } else {
+      booth.data("state", "ready")
+    }
+  })
+
+  booth.data("state", "ready")
+
+
+  //
+  // welcome page handlers
+  //
+
+  // input
+
+  welcome.on("booth:button:ok", function(event) {
+    if (welcome.data("state") != "flashing") {
+      welcome.data("state", "flashing") 
+      if (credits == 0) {
+        $('.credits')
+          .fadeOut(50).fadeIn(50)
+          .fadeOut(50).fadeIn(50)
+          .fadeOut(50).fadeIn(50)
+          .fadeOut(50).fadeIn(50)
+          .fadeOut(50).fadeIn(50)
+      }
+      setTimeout(function() {
+        welcome.data("state", "not flashing")
+      }, 600)
+    }
+  })
+
+
+  // transition out
+
+  welcome.on("booth:credits", function(event) {
+    if (credits > 0) {
+      $('html, body').animate({
+        scrollLeft: booth.offset().left
+      }, 2000)
+      setTimeout(function() {
+        page = booth // scroll and update the focus page
+      }, 2100)
+    }
+  })
+
+  //
+  // booth page handlers
+  //
+
+  // photos
+
+  photos = $('#booth #photos')
+
+  photos.on("booth:photos:display", function(event, dataUrl) {
+    $(photos.children()[photo]).html('<img src="' + dataUrl + '" />')
+  })
+
+  // timer
+
+  timer = $('#booth .timer')
+
+  timer.on("booth:timer:start", function(event) {
+    var seconds = 3;
+    timer.text(seconds)
+    timer.data("seconds", seconds)
+    timer.fadeIn(100)
+
+    if (booth.data("state") == "cancelling") {
+      booth.data("state", "ready") // cancelled
+      return
+    }
+
+    timer.timer = setTimeout(function() {
+      timer.trigger("booth:timer:tick")
+    }, 1000)
+  })
+
+  timer.on("booth:timer:tick", function(event) {
+    var seconds = timer.data("seconds")
+    seconds--
+
+    if (booth.data("state") == "cancelling") {
+      booth.data("state", "ready") // cancelled
+      return
+    }
+
+    if (seconds == 0) {
+      timer.trigger("booth:timer:finished")
+    } else {
+      timer.text(seconds)
+      timer.data("seconds", seconds)
+      timer.timer = setTimeout(function() {
+        timer.trigger("booth:timer:tick")
+      }, 1000)
+    }
+  })
+
+  timer.on("booth:timer:finished", function(event) {
+    $('li.trigger').click() // clicking the trigger is all that is needed as the handler for the photo is above
+    timer.fadeOut(100)
+  })
+
+  // input
+
+  booth.on("booth:button:cancel", function(event) {
+    console.log("cancel pressed with booth active")
+
+    if (booth.data("state") == "taking_photo") {
+      booth.data("state", "cancelling") // canelling goes to read after less than a second
+      timer.text('X')
+      timer.fadeOut(1000)
+    }
+  })
+
+  booth.on("booth:button:ok", function(event) {
+
+    console.log("okay pressed with booth active")
+
+    if (booth.data("state") == "ready") { // locking that works because single threaded
+      booth.data("state", "taking_photo");
+
+      timer.trigger("booth:timer:start")
+
+      $('html, body').animate({ // scroll to where the action is
+        scrollLeft: booth.offset().left
+      }, 15)
+    }
+  })
+
+  // transition out
+
+  booth.on("booth:review", function(event) {
+
+    $('#review #strip').append($('#booth #photos').clone()) // copy photos out
+
+    $('html, body').animate({
+      scrollLeft: review.offset().left
+    }, 2000)
+    setTimeout(function() {
+      page = review // scroll and update the focus page
+    }, 2100)
+  })
+
+
+  //
+  // review page handlers
+  //
+
+  // printer / review timer
+
+  printer = $('#review .timer')
+
+  printer.on("review:timer:start", function(event) {
+    console.log("starting print timer...")
+    var seconds = 60;
+    printer.text(seconds + " seconds")
+    printer.data("seconds", seconds)
+    setTimeout(function() {
+      printer.trigger("review:timer:tick")
+    }, 1000)
+  })
+
+  printer.on("review:timer:tick", function(event) {
+    console.log("print timer tick...")
+    var seconds = printer.data("seconds")
+    seconds--
+    if (seconds == 0) {
+      printer.trigger("review:timer:finished")
+    } else {
+      printer.text(seconds + " seconds")
+      printer.data("seconds", seconds)
+      setTimeout(function() {
+        printer.trigger("review:timer:tick")
+      }, 1000)
+    }
+  })
+
+  printer.on("review:timer:finished", function(event) {
+    console.log("print timer finished...")
+    socket.emit("review:timer:finished")
+    location.reload() // reload page
+  })
+
+  review.on("booth:button:ok", function(event) {
+    socket.emit("review:print")
+    $('#review #message').text("Printing photos...")
+    printer.trigger("review:timer:start")
+  })
+
+  // we set this last so that button presses don't make it anywhere until after all setup is complete
+  page = welcome // starting page
+
+})
 
 </script>
 </head>
 <body>
-<div id="page_camera">
-<div id="credits"><span id="text"><span id="credit">0</span> credits</span></div>
-<div id="camerabody">
-  <div id="camera"></div>
-  <div id="shutter"></div>
+<div id="pages">
+<div class="page" id="welcome">
+  <span class="credits">0 credits</span>
+</div><!-- welcome page -->
+<div class="page" id="booth">
+<div id="credits">
+  <span class="credits">0 credits</span>
 </div>
-<div id="countdown"></div>
+<div class="timer">3</div>
+<div id="camera"></div>
 <div id="photos">
-  <div class="photo" id="photo1"></div>
-  <div class="photo" id="photo2"></div>
-  <div class="photo" id="photo3"></div>
-  <div class="photo" id="photo4"></div>
+  <div class="photo"></div>
+  <div class="photo"></div>
+  <div class="photo"></div>
 </div>
+</div> <!-- end of camera page -->
+<div class="page" id="review">
+  <div id="strip">
+  </div>
+  <div id="message">Push okay to print these photos...</div>
+  <div class="timer">60 seconds</div>
+</div><!-- review -->
 </div>
 </body>
 </html>
