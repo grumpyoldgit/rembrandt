@@ -1,8 +1,7 @@
 {
 	"Hardware": {
 		"comport" : {
-			"name": "COM1",
-			"debug": true
+			"name": "COM1"
 		}
 	},
 	"Webserver": {
@@ -11,5 +10,11 @@
 	},
 	"Storage": {
 		"location": "photos"
+	},
+	"Logging": {
+		"location": "rembrandt.log",
+		"level": "info",
+		"handleExceptions": true,
+		"exitOnError": false
 	}
 }

@@ -5,12 +5,30 @@ const path = require('path')
 const imagedatauri = require('image-data-uri')
 const pdfkit = require('pdfkit')
 
+// load config
+
+const config = require('config')
+
+// configure logging
+
+const winston = require('winston')
+winston.configure({
+  transports: [
+    new (winston.transports.File)({
+      filename: config.get("Logging.location"),
+      level: config.get("Logging.level"),
+      handleExceptions: config.get("Logging.handleExceptions")
+    })
+  ],
+  exitOnError: config.get("Logging.exitOnError")
+})
+
 // most important globals
 
 var version = "1.0.0"
 var credits = 0 // current credits
 
-var test = false // for mocking serial ports
+var comport = config.get('Hardware.comport')
 
 // parse command-line options first
 
@@ -44,17 +62,6 @@ if (opt.argv.indexOf("test.printing") > -1) {
   test.printing = true
 }
 
-// load config
-
-var config = require('config')
-var comport = config.get('Hardware.comport')
-
-// Google drive client
-//
-// Used by the webserver to store uploaded pictures
-
-
-
 // Web server
 //
 // Serves static content as well as results from serial interface.
@@ -82,14 +89,14 @@ function Photos() {
     }
 
     imagedatauri.outputFile(photo, p).then(res => {
-      console.log("Stored image in " + res)
+      winston.info("Stored image in file %s", res)
       if (!(x===undefined)) {
         x()
       }
     })
   }
   this.print = function(x) {
-    console.log("printing photos")
+    winston.info("printing photos")
     var pdf = new pdfkit({autoFirstPage: false})
     var t = (new Date().getTime() / 1000) + Math.random()
     var dir = config.get('Storage.location')
@@ -102,7 +109,7 @@ function Photos() {
       margins: {top: 9, bottom: 9, right: 9, left: 9}
     })
     for (i in this.paths) {
-      console.log("adding path " + this.paths[i])
+      winston.info("adding path " + this.paths[i])
       pdf.image(this.paths[i], {
        fit: [126, 378], // 126 is 144 - 2*9, 378 is scaled from that
        align: 'center',
@@ -159,25 +166,28 @@ app.get('/credits', function (req, res) {
 })
 
 io.on('connection', function(socket) {
-  console.log('connection from frontend received')
+  winston.info('Connection from frontend received, socket %s', socket.id)
 
   connections[socket.id] = {socket:socket, photos:new Photos()}
 
   socket.on('credit used', function() {
+    winston.info("Client message from socket.id %s received: credit used", socket.id)
     credits--
     io.emit('credit update', credits)
   })
 
   socket.on('photo taken', function(photo) {
-    console.log("photo received")
+    winston.info("Client message from socket.id %s received: photo taken", socket.id)
     connections[socket.id].photos.store(photo)
   })
 
   socket.on('review.print', function() {
+    winston.info("Client message from socket.id %s received: review.print", socket.id)
     connections[socket.id].photos.print()
   })
 
   socket.on('disconnect', function() {
+    winston.info('Disconnection from socket.id %s', socket.id)
     delete connections[socket.id]
   })
 
@@ -191,7 +201,7 @@ io.on('connection', function(socket) {
   socket.watchdog = setInterval(function (socket) {
     if (this.last < (new Date().getTime() - 50000)) {
       // kill chrome and restart it..
-      console.log("no chrome instance")
+      winston.info("no chrome instance")
       clearInterval(socket.watchdog)
     }
     socket.emit('ping');
@@ -207,7 +217,7 @@ app.use('/static', express.static('static'))
 http.listen(
   config.get('Webserver.port'), 
   config.get('Webserver.host'), 
-  () => console.log('Example app listening on port 3000!')
+  () => winston.info('Express webserver started on host %s port %d', config.get('Webserver.host'), config.get('Webserver.port'))
 )
 
 // Serial processing
@@ -226,7 +236,7 @@ if (test.serial) {
 var port = new SerialPort(comport.name)
 
 port.on('open', () => {
-  console.log('Port opened: ', port.path)
+  winston.info('Serial port opened: %s', port.path)
 })
 
 if (test.serial) {
@@ -237,7 +247,7 @@ if (test.serial) {
 
     var keymap = {'w':"up", 'a':"left", 's':"down", 'd':"right", 'o':"ok", 'c':"cancel", '$':"coin"}
 
-    console.log("in test mode, mock port open. Press " + Object.keys(keymap).toString() + " or q to quit.")
+    console.log("in interactive end-to-end test mode, mock port open. Press " + Object.keys(keymap).toString() + " or q to quit.")
 
     process.stdin.on('keypress', function (str, key) {
       if (key.sequence in keymap) {
@@ -255,7 +265,7 @@ if (test.serial) {
 }
 
 function pressed(button) {
-  console.log("button pressed: " + button)
+  winston.info("button pressed: " + button)
   if (button == "coin") {
     credits++;
     io.emit('credit update', credits.toString(), {for:'everyone'})
@@ -299,7 +309,7 @@ function hexdump(buffer) {
 function decode(instream) {
   for (button in buttons) {
     var b = new Buffer.from(buttons[button].data, "ascii")
-    console.log("comparing: " + hexdump(instream) + " with " + hexdump(b))
+    winston.debug("Serial input, comparing: %s with %s", hexdump(instream),  hexdump(b))
     if (instream.includes(b)) {
       pressed(button)
     }
@@ -310,29 +320,25 @@ var instream = new Buffer("")
 var okbuffer = new Buffer.from(buttons["ok"].data, "ascii")
 
 function reassemble(incoming) {
-  if (comport.debug) {
-    console.log("incoming:\n" + incoming.toString('hex'))
-  }
+  winston.debug("Serial input, incoming: %s", incoming.toString('hex'))
 
   var l = instream.length + incoming.length
   instream = Buffer.concat([instream, incoming], l)
 
-  if (comport.debug) {
-    console.log("reassembled instream:\n" + instream.toString('hex'))
-  }
+  winston.debug("Serial input, reassembled instream: %s", instream.toString('hex'))
 
   var offset = instream.indexOf(2) // search for a command
 
   if (offset == -1) {
-    console.log("no command in instream")
+    winston.debug("Serial input, no command in instream")
     return
   }
 
-  console.log("found 2 at offset " + offset.toString())
-  console.log("instream.length is: " + instream.length + " okbuffer length is: "+ okbuffer.length)
+  winston.debug("Serial input, found 2 at offset %d", offset)
+  winston.debug("Serial input, instream.length is %d okbuffer length is: %s", instream.length, okbuffer.length)
 
   if ((instream.length - offset) < okbuffer.length) {
-    console.log("not enough data")
+    winston.debug("Serial input, not enough data")
     return
   }
 
@@ -352,7 +358,7 @@ const chromeLauncher = require('chrome-launcher');
 
 var flags = ['--disable-gpu', '--kiosk']
 
-if (test) {
+if (test.serial) {
   flags = ['--disable-gpu']
 }
 
@@ -360,5 +366,5 @@ chromeLauncher.launch({
   startingUrl: 'http://127.0.0.1:3000/static/photobooth.html',
   chromeFlags: flags
 }).then(chrome => {
-  console.log('Chrome debugging port running on ${chrome.port}');
+  winston.info('Chrome debugging port running on %d', chrome.port);
 });
