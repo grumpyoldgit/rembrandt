@@ -235,7 +235,7 @@ $(document).ready(function() {
   photo = 0
 
   booth.data("state", "ready")
-
+  review.data("state", "ready")
 
   //
   // welcome page handlers
@@ -414,9 +414,12 @@ $(document).ready(function() {
   })
 
   review.on("booth:button:ok", function(event) {
-    socket.emit("review.print")
-    $('#review #message').text("Printing photos...")
-    printer.trigger("review:timer:start")
+    if (review.data("state") == "ready") { // locking that works because single threaded
+      review.data("state", "printing")
+      socket.emit("review.print")
+      $('#review #message').text("Printing photos...")
+      printer.trigger("review:timer:start")
+    }
   })
 
   // we set this last so that button presses don't make it anywhere until after all setup is complete
