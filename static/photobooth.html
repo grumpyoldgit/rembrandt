@@ -414,7 +414,7 @@ $(document).ready(function() {
   })
 
   review.on("booth:button:ok", function(event) {
-    socket.emit("review:print")
+    socket.emit("review.print")
     $('#review #message').text("Printing photos...")
     printer.trigger("review:timer:start")
   })

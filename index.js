@@ -1,3 +1,10 @@
+// requires needed later
+
+const fs = require('fs')
+const path = require('path')
+const imagedatauri = require('image-data-uri')
+const pdfkit = require('pdfkit')
+
 // most important globals
 
 var version = "1.0.0"
@@ -24,8 +31,17 @@ if (opt.options.version) {
   process.exit(0);
 }
 
-if (opt.argv[0] == "test") {
-  test = true
+var test = {
+  serial: false,
+  printing: false
+}
+
+if (opt.argv.indexOf("test.serial") > -1) {
+  test.serial = true
+}
+
+if (opt.argv.indexOf("test.printing") > -1) {
+  test.printing = true
 }
 
 // load config
@@ -49,6 +65,89 @@ var app = express()
 var http = require('http').Server(app)
 var io = require('socket.io')(http)
 
+// class for handling incoming photos
+
+function Photos() {
+  this.paths = []
+
+  this.store = function(photo, x) {
+    var t = (new Date().getTime() / 1000) + Math.random()
+    var dir = config.get('Storage.location')
+    var p = dir + path.sep + t + ".png"
+    
+    this.paths.push(p)
+
+    if (this.paths.length > 3) {
+      this.paths.shift()
+    }
+
+    imagedatauri.outputFile(photo, p).then(res => {
+      console.log("Stored image in " + res)
+      if (!(x===undefined)) {
+        x()
+      }
+    })
+  }
+  this.print = function(x) {
+    console.log("printing photos")
+    var pdf = new pdfkit({autoFirstPage: false})
+    var t = (new Date().getTime() / 1000) + Math.random()
+    var dir = config.get('Storage.location')
+
+    var stream = fs.createWriteStream(dir + path.sep + t + ".pdf")
+    pdf.pipe(stream)
+    pdf.addPage({
+      layout:"portrait", 
+      size:[144, 432], // 2 * 6 inches (72 points per inch)
+      margins: {top: 9, bottom: 9, right: 9, left: 9}
+    })
+    for (i in this.paths) {
+      console.log("adding path " + this.paths[i])
+      pdf.image(this.paths[i], {
+       fit: [126, 378], // 126 is 144 - 2*9, 378 is scaled from that
+       align: 'center',
+       margins: {top: 10, bottom: 10, right: 0, left: 0}
+       //valign: 'center'
+      })
+      pdf.text(" ")
+    }
+
+    pdf.image("print_footer.png", { // add a graphical footer
+      fit: [126, 378],
+      align: 'center',
+      margins: {top: 40, bottom: 0, right: 0, left: 0}
+    })
+
+    pdf.save()
+    pdf.end()
+    if (!(x === undefined)) {
+      stream.on('finish', x)
+    }
+  }
+
+  this.clear = function() {
+    this.paths = []
+  }
+}
+
+if (test.printing) {
+  var p = new Photos()
+  const png = imagedatauri.encodeFromFile("portrait.png").then(res => {
+    p.store(res, function() {
+      p.store(res, function() {
+        p.store(res, function() {
+          p.print(function () {
+            process.exit()
+          })
+        })
+      })
+    })
+  })
+  return
+}
+
+var connections = {} // holds connection-specific data (photos!)
+
 // https://expressjs.com/en/guide/routing.html
 
 app.get('/ping', function (req, res) {
@@ -62,13 +161,24 @@ app.get('/credits', function (req, res) {
 io.on('connection', function(socket) {
   console.log('connection from frontend received')
 
+  connections[socket.id] = {socket:socket, photos:new Photos()}
+
   socket.on('credit used', function() {
     credits--
     io.emit('credit update', credits)
   })
 
   socket.on('photo taken', function(photo) {
-    console.log(photo);
+    console.log("photo received")
+    connections[socket.id].photos.store(photo)
+  })
+
+  socket.on('review.print', function() {
+    connections[socket.id].photos.print()
+  })
+
+  socket.on('disconnect', function() {
+    delete connections[socket.id]
   })
 
   /*
@@ -89,10 +199,6 @@ io.on('connection', function(socket) {
   */
 })
 
-io.on('disconnect', function() {
-  console.log('connection lost to frontend')
-})
-
 
 // /static is all the static content for the frontend
 
@@ -109,9 +215,9 @@ http.listen(
 // Reads serial data from the serial port, decoding it so that the data
 // is available over the web application started above
 
-var SerialPort = require(test ? "serialport/test" : "serialport")
+var SerialPort = require(test.serial ? "serialport/test" : "serialport")
 
-if (test) {
+if (test.serial) {
   MockBinding = SerialPort.Binding
   comport.name = "/dev/ROBOT"
   MockBinding.createPort(comport.name, { echo: true, record: true })
@@ -123,7 +229,7 @@ port.on('open', () => {
   console.log('Port opened: ', port.path)
 })
 
-if (test) {
+if (test.serial) {
   port.on('open', () => {
     var readline = require('readline')
     readline.emitKeypressEvents(process.stdin)
