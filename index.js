@@ -103,27 +103,35 @@ function Photos() {
 
     var stream = fs.createWriteStream(dir + path.sep + t + ".pdf")
     pdf.pipe(stream)
-    pdf.addPage({
-      layout:"portrait", 
-      size:[144, 432], // 2 * 6 inches (72 points per inch)
-      margins: {top: 9, bottom: 9, right: 9, left: 9}
-    })
-    for (i in this.paths) {
-      winston.info("adding path " + this.paths[i])
-      pdf.image(this.paths[i], {
-       fit: [126, 378], // 126 is 144 - 2*9, 378 is scaled from that
-       align: 'center',
-       margins: {top: 10, bottom: 10, right: 0, left: 0}
-       //valign: 'center'
-      })
-      pdf.text(" ")
-    }
 
-    pdf.image("print_footer.png", { // add a graphical footer
-      fit: [126, 378],
-      align: 'center',
-      margins: {top: 40, bottom: 0, right: 0, left: 0}
-    })
+    var pages = [1,2] // 2 pages of 6 x 2 inches
+
+    for (var page in pages) {
+      pdf.addPage({
+        layout:"portrait", 
+        size:[144, 432], // 2 * 6 inches (72 points per inch)
+        //size:[288, 432], // 4 * 6 inches (72 points per inch)
+        margins: {top: 9, bottom: 9, right: 9, left: 9}
+      })
+
+      for (i in this.paths) {
+        winston.info("adding path " + this.paths[i])
+        pdf.image(this.paths[i], {
+         fit: [126, 378], // 126 is 144 - 2*9, 378 is scaled from that
+         align: 'center',
+         margins: {top: 10, bottom: 10, right: 0, left: 0}
+         //valign: 'center'
+        })
+      }
+
+      pdf.text(" ")
+
+      pdf.image("print_footer.png", { // add a graphical footer
+        fit: [126, 378],
+        align: 'center',
+        margins: {top: 40, bottom: 0, right: 0, left: 0}
+      })
+    }
 
     pdf.save()
     pdf.end()
