@@ -96,10 +96,10 @@ Confirm that the setting has loaded into chrome by visiting chrome://policy
 
 ### Test the installation
 
-You can test the installation with the following command:
+You can test the installation without the serial interface using the following command:
 
 ```
-node index.js test
+node index.js test.serial
 ```
 
 Allow access in the firewall dialog that pops up when the node application starts.
