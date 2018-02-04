@@ -105,25 +105,36 @@ function Photos() {
     pdf.pipe(stream)
     pdf.addPage({
       layout:"portrait", 
-      size:[144, 432], // 2 * 6 inches (72 points per inch)
+      //size:[144, 432], // 2 * 6 inches (72 points per inch)
+      size:[288, 432], // 4 * 6 inches (72 points per inch)
       margins: {top: 9, bottom: 9, right: 9, left: 9}
     })
-    for (i in this.paths) {
-      winston.info("adding path " + this.paths[i])
-      pdf.image(this.paths[i], {
-       fit: [126, 378], // 126 is 144 - 2*9, 378 is scaled from that
-       align: 'center',
-       margins: {top: 10, bottom: 10, right: 0, left: 0}
-       //valign: 'center'
-      })
-      pdf.text(" ")
-    }
 
-    pdf.image("print_footer.png", { // add a graphical footer
-      fit: [126, 378],
-      align: 'center',
-      margins: {top: 40, bottom: 0, right: 0, left: 0}
-    })
+    var pages = [1,2] // 2 pages of 6 x 2 inches. Not actually pages, just layed out like that.
+
+    for (var page in pages) {
+      var column_offset = (page * 144) + 9
+
+      function row_offset(row) { return ((row * 105) + 9) }
+
+      for (i in this.paths) {
+        winston.info("adding path " + this.paths[i])
+        pdf.image(this.paths[i], column_offset, row_offset(i), {
+         fit: [126, 378], // 126 is 144 - 2*9, 378 is scaled from that
+         align: 'center',
+         margins: {top: 10, bottom: 10, right: 0, left: 0}
+         //valign: 'center'
+        })
+      }
+
+      pdf.text(" ")
+
+      pdf.image("print_footer.png", column_offset, row_offset(3.25), { // add a graphical footer
+        fit: [126, 378],
+        align: 'center',
+        margins: {top: 40, bottom: 0, right: 0, left: 0}
+      })
+    }
 
     pdf.save()
     pdf.end()
@@ -356,10 +367,10 @@ port.on('data', function(incoming) { // receives node Buffer
 
 const chromeLauncher = require('chrome-launcher');
 
-var flags = ['--disable-gpu', '--kiosk']
+var flags = ['--disable-gpu', '--kiosk', '--kiosk-printing', '--disable-background-timer-throttling']
 
 if (test.serial) {
-  flags = ['--disable-gpu']
+  flags = ['--disable-gpu', '--kiosk-printing', '--disable-background-timer-throttling']
 }
 
 chromeLauncher.launch({
