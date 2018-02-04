@@ -77,7 +77,7 @@ var io = require('socket.io')(http)
 function Photos() {
   this.paths = []
 
-  this.store = function(photo, x) {
+  this.store = function(filename, photo, x) {
     var t = (new Date().getTime() / 1000) + Math.random()
     var dir = config.get('Storage.location')
     var p = dir + path.sep + t + ".png"
@@ -95,13 +95,11 @@ function Photos() {
       }
     })
   }
-  this.print = function(x) {
+  this.pdf = function(filename, x) {
     winston.info("printing photos")
     var pdf = new pdfkit({autoFirstPage: false})
-    var t = (new Date().getTime() / 1000) + Math.random()
-    var dir = config.get('Storage.location')
 
-    var stream = fs.createWriteStream(dir + path.sep + t + ".pdf")
+    var stream = fs.createWriteStream(filename)
     pdf.pipe(stream)
     pdf.addPage({
       layout:"portrait", 
@@ -154,7 +152,7 @@ if (test.printing) {
     p.store(res, function() {
       p.store(res, function() {
         p.store(res, function() {
-          p.print(function () {
+          p.pdf(function () {
             process.exit()
           })
         })
@@ -176,6 +174,15 @@ app.get('/credits', function (req, res) {
   res.send(credits.toString())
 })
 
+app.get('/pdf', function(req, res) {
+  res.download('photos/1517778940.5571823.pdf')
+})
+
+function mktmp(ext) {
+  var t = (new Date().getTime() / 1000) + Math.random()
+  return config.get('Storage.location') + path.sep + t + "." + ext
+}
+
 io.on('connection', function(socket) {
   winston.info('Connection from frontend received, socket %s', socket.id)
 
@@ -189,35 +196,26 @@ io.on('connection', function(socket) {
 
   socket.on('photo taken', function(photo) {
     winston.info("Client message from socket.id %s received: photo taken", socket.id)
-    connections[socket.id].photos.store(photo)
+    connections[socket.id].photos.store(mktmp("png"), photo)
   })
 
   socket.on('review.print', function() {
     winston.info("Client message from socket.id %s received: review.print", socket.id)
-    connections[socket.id].photos.print()
+
+    var filename = mktmp("pdf")
+
+    connections[socket.id].photos.pdf(filename, function () {
+      fs.readFile(filename, (err, data) => {
+        winston.info("Sending PDF to client")
+        io.emit('pdf', imagedatauri.encode(data, "application/pdf"))
+      })
+    })
   })
 
   socket.on('disconnect', function() {
     winston.info('Disconnection from socket.id %s', socket.id)
     delete connections[socket.id]
   })
-
-  /*
-  // create a watchdog timer that pings the client. If a ping isn't returned, kill it and restart
-
-  socket.on('pong', function() {
-    this.last = new Date().getTime()
-  })
-
-  socket.watchdog = setInterval(function (socket) {
-    if (this.last < (new Date().getTime() - 50000)) {
-      // kill chrome and restart it..
-      winston.info("no chrome instance")
-      clearInterval(socket.watchdog)
-    }
-    socket.emit('ping');
-  }, 1000)
-  */
 })
 
 

@@ -132,10 +132,14 @@ html {
   font-size: 24pt;
   margin: 10px auto;
 }
+#pdf {
+  display: block;
+}
 </style>
 <script type="text/javascript" src="jquery.2.1.3.min.js"></script>
 <script type="text/javascript" src="photobooth.0.7_min.js"></script>
 <script type="text/javascript" src="socket.io.2.0.4.slim.js"></script>
+<script type="text/javascript" src="print.min.js"></script>
 <script type="text/javascript">
 
 var socket = io()
@@ -180,6 +184,11 @@ socket.on('credit update', function(credits) {
 
 socket.on('button pressed', function(button) {
   page.trigger("booth:button:" + button) // bubble message to current page
+})
+
+socket.on('pdf', function (data) {
+  console.log("received pdf data")
+  page.trigger("booth:pdf", data)
 })
 
 var credits = 0
@@ -340,6 +349,7 @@ $(document).ready(function() {
   // input
 
   booth.on("booth:button:cancel", function(event) {
+
     console.log("cancel pressed with booth active")
 
     if (booth.data("state") == "taking_photo") {
@@ -415,7 +425,7 @@ $(document).ready(function() {
   printer.on("review:timer:finished", function(event) {
     console.log("print timer finished...")
     socket.emit("review:timer:finished")
-    location.reload() // reload page
+    //location.reload() // reload page
   })
 
   review.on("booth:button:ok", function(event) {
@@ -425,6 +435,11 @@ $(document).ready(function() {
       $('#review #message').text("Printing photos...")
       printer.trigger("review:timer:start")
     }
+  })
+
+  review.on("booth:pdf", function (event, data) {
+    // we get the pdf as a dataurl
+    printJS({printable:'/static/1517778940.5571823.pdf', type:'pdf', showModal:true})
   })
 
   // we set this last so that button presses don't make it anywhere until after all setup is complete
@@ -456,6 +471,8 @@ $(document).ready(function() {
   </div>
   <div id="message">Push okay to print these photos...</div>
   <div class="timer">60 seconds</div>
+  <div id="pdf">
+  </div>
 </div><!-- review -->
 </div>
 </body>
