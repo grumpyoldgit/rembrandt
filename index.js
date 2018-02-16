@@ -1,9 +1,14 @@
 // requires needed later
 
 const fs = require('fs')
-const path = require('path')
 const imagedatauri = require('image-data-uri')
 const pdfkit = require('pdfkit')
+const isWin = (process.platform === "win32")
+let path = require('path')
+if (isWin) {
+  let path = require('path.win32')
+}
+const util = require('util')
 
 // load config
 
@@ -174,8 +179,50 @@ app.get('/credits', function (req, res) {
   res.send(credits.toString())
 })
 
-app.get('/pdf', function(req, res) {
-  res.download('photos/1517778940.5571823.pdf')
+const crypto = require('crypto');
+
+function checksum (str, algorithm, encoding) {
+    return crypto
+        .createHash(algorithm || 'sha1')
+        .update(str, 'utf8')
+        .digest(encoding || 'hex')
+}
+
+app.get('/pdf', function(req, res) { // you need to supply the correct file hash to download it
+
+  // chroot
+
+  var p = path.resolve('photos/'+req.query.filename)
+
+  winston.info("PDF request for filename " + req.query.filename + " with checksum " + req.query.checksum)
+
+  if (path.relative('photos', p).includes("..")) {
+    winston.error("Photo not found")
+    return res.status(404).send("Not found")
+  }
+
+  // check hash
+
+  var correct_checksum = "";
+
+  fs.readFile(req.query.filename, (err, data) => {
+    var correct_checksum = checksum(data) // checksum the data not the filename
+
+    winston.info(util.format("Supplied checksum: %s, calculated checksump: %s", req.query.checksum, correct_checksum))
+
+    if (correct_checksum != req.query.checksum) { // timing
+      winston.error("Checksum not correct")
+      return res.status(404).send("Not found")
+    }
+
+    var stream = fs.createReadStream(req.query.filename); // both file read operations should probably use this, but that's not in the spec for this work
+
+    var filename = "photos.pdf"; 
+    filename = encodeURIComponent(filename);
+    res.setHeader('Content-disposition', 'inline; filename="' + filename + '"');
+    res.setHeader('Content-type', 'application/pdf');
+    stream.pipe(res)
+  });
 })
 
 function mktmp(ext) {
@@ -206,8 +253,7 @@ io.on('connection', function(socket) {
 
     connections[socket.id].photos.pdf(filename, function () {
       fs.readFile(filename, (err, data) => {
-        winston.info("Sending PDF to client")
-        io.emit('pdf', imagedatauri.encode(data, "application/pdf"))
+        io.emit('pdf', filename, checksum(data)) // checksum the file data not the filename
       })
     })
   })
@@ -368,7 +414,7 @@ const chromeLauncher = require('chrome-launcher');
 var flags = ['--disable-gpu', '--kiosk', '--kiosk-printing', '--disable-background-timer-throttling']
 
 if (test.serial) {
-  flags = ['--disable-gpu', '--kiosk-printing', '--disable-background-timer-throttling']
+  flags = ['--disable-gpu', /*'--kiosk-printing',*/ '--disable-background-timer-throttling']
 }
 
 chromeLauncher.launch({

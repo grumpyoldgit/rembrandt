@@ -186,9 +186,9 @@ socket.on('button pressed', function(button) {
   page.trigger("booth:button:" + button) // bubble message to current page
 })
 
-socket.on('pdf', function (data) {
-  console.log("received pdf data")
-  page.trigger("booth:pdf", data)
+socket.on('pdf', function (data, checksum) {
+  console.log("received pdf data and checksum " + checksum)
+  page.trigger("booth:pdf", [data, checksum])
 })
 
 var credits = 0
@@ -437,9 +437,9 @@ $(document).ready(function() {
     }
   })
 
-  review.on("booth:pdf", function (event, data) {
+  review.on("booth:pdf", function (event, path, checksum) {
     // we get the pdf as a dataurl
-    printJS({printable:'/static/1517778940.5571823.pdf', type:'pdf', showModal:true})
+    printJS({printable:'/pdf?filename=' + path + "&checksum=" + checksum, type:'pdf', showModal:true})
   })
 
   // we set this last so that button presses don't make it anywhere until after all setup is complete
