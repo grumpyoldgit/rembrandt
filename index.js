@@ -411,10 +411,10 @@ port.on('data', function(incoming) { // receives node Buffer
 
 const chromeLauncher = require('chrome-launcher');
 
-var flags = ['--disable-gpu', '--kiosk', '--kiosk-printing', '--disable-background-timer-throttling']
+var flags = ['--disable-gpu', '--kiosk', '--kiosk-printing',  '--disable-print-preview', '--disable-background-timer-throttling']
 
 if (test.serial) {
-  flags = ['--disable-gpu', '--kiosk-printing', '--disable-background-timer-throttling']
+  flags = ['--disable-gpu', '--kiosk-printing', '--disable-print-preview', '--disable-background-timer-throttling']
 }
 
 chromeLauncher.launch({
