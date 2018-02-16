@@ -425,7 +425,7 @@ $(document).ready(function() {
   printer.on("review:timer:finished", function(event) {
     console.log("print timer finished...")
     socket.emit("review:timer:finished")
-    //location.reload() // reload page
+    location.reload() // reload page
   })
 
   review.on("booth:button:ok", function(event) {
