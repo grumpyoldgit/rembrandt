@@ -381,10 +381,9 @@ function reassemble(incoming) {
     winston.debug("Serial input, comparing: %s with %s", hexdump(instream),  hexdump(b))
     if (instream.includes(b)) {
       pressed(button)
+      instream = new Buffer("") // reset buffers once message is received
     }
   }
-
-  instream = new Buffer("")
 }
 
 port.on('data', function(incoming) { // receives node Buffer
