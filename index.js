@@ -348,8 +348,11 @@ var buttons = {
   "cancel": {
     data: "\x02CCPRS\x03\x01\x80"
   },
-  "coin": {
+  "coin_button": {
     data: "\x02SC\x00\x00\x01\x03\x00\x9c"
+  },
+  "fivedollars": {
+    data: "\xc1\xc1\xc1\xc1\xc1"
   }
 }
 
