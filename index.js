@@ -321,7 +321,7 @@ if (test.serial) {
 
 function pressed(button) {
   winston.info("button pressed: " + button)
-  if (button == "coin") {
+  if (button == "fivedollars") {
     credits++;
     io.emit('credit update', credits.toString(), {for:'everyone'})
   } else {
