@@ -321,7 +321,7 @@ if (test.serial) {
 
 function pressed(button) {
   winston.info("button pressed: " + button)
-  if (button == "fivedollars") {
+  if (button == "fivedollars" || button == "coin") {
     credits++;
     io.emit('credit update', credits.toString(), {for:'everyone'})
   } else {
@@ -348,11 +348,11 @@ var buttons = {
   "cancel": {
     data: "\x02CCPRS\x03\x01\x80"
   },
-  "coin_button": {
+  "coin": {
     data: "\x02SC\x00\x00\x01\x03\x00\x9c"
   },
   "fivedollars": {
-    data: "\xc1\xc1\xc1\xc1\xc1"
+    data: "\xc1\xc1\xc1\xc1"
   }
 }
 
@@ -364,18 +364,7 @@ function hexdump(buffer) {
   return h
 }
 
-function decode(instream) {
-  for (button in buttons) {
-    var b = new Buffer.from(buttons[button].data, "ascii")
-    winston.debug("Serial input, comparing: %s with %s", hexdump(instream),  hexdump(b))
-    if (instream.includes(b)) {
-      pressed(button)
-    }
-  }
-}
-
 var instream = new Buffer("")
-var okbuffer = new Buffer.from(buttons["ok"].data, "ascii")
 
 function reassemble(incoming) {
   winston.debug("Serial input, incoming: %s", incoming.toString('hex'))
@@ -385,22 +374,16 @@ function reassemble(incoming) {
 
   winston.debug("Serial input, reassembled instream: %s", instream.toString('hex'))
 
-  var offset = instream.indexOf(2) // search for a command
+  // search for known messages
 
-  if (offset == -1) {
-    winston.debug("Serial input, no command in instream")
-    return
+  for (button in buttons) {
+    var b = new Buffer.from(buttons[button].data, "ascii")
+    winston.debug("Serial input, comparing: %s with %s", hexdump(instream),  hexdump(b))
+    if (instream.includes(b)) {
+      pressed(button)
+    }
   }
 
-  winston.debug("Serial input, found 2 at offset %d", offset)
-  winston.debug("Serial input, instream.length is %d okbuffer length is: %s", instream.length, okbuffer.length)
-
-  if ((instream.length - offset) < okbuffer.length) {
-    winston.debug("Serial input, not enough data")
-    return
-  }
-
-  decode(instream)
   instream = new Buffer("")
 }
 
