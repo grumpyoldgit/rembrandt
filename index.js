@@ -4,9 +4,9 @@ const fs = require('fs')
 const imagedatauri = require('image-data-uri')
 const pdfkit = require('pdfkit')
 const isWin = (process.platform === "win32")
-let path = require('path')
+var path = require('path')
 if (isWin) {
-  let path = require('path.win32')
+  var path = path.win32
 }
 const util = require('util')
 
@@ -411,7 +411,7 @@ port.on('data', function(incoming) { // receives node Buffer
 
 const chromeLauncher = require('chrome-launcher');
 
-var flags = ['--disable-gpu', '--kiosk', '--kiosk-printing',  '--disable-print-preview', '--disable-background-timer-throttling']
+var flags = ['--disable-gpu', '--kiosk', '--kiosk-printing']
 
 if (test.serial) {
   flags = ['--disable-gpu', '--kiosk-printing', '--disable-print-preview', '--disable-background-timer-throttling']
