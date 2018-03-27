@@ -16,5 +16,9 @@
 		"level": "info",
 		"handleExceptions": true,
 		"exitOnError": false
+	},
+	"Theme": {
+		"dir": "static/themes/popcorn",
+		"url": "static/themes/popcorn"
 	}
 }

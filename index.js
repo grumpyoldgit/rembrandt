@@ -67,6 +67,9 @@ if (opt.argv.indexOf("test.printing") > -1) {
   test.printing = true
 }
 
+const themedir = config.get("Theme.dir")
+const themeurl = config.get("Theme.url")
+
 // Web server
 //
 // Serves static content as well as results from serial interface.
@@ -132,7 +135,7 @@ function Photos() {
 
       pdf.text(" ")
 
-      pdf.image("print_footer.png", column_offset, row_offset(3.25), { // add a graphical footer
+      pdf.image(themedir + path.sep + "print_footer.png", column_offset, row_offset(3.25), { // add a graphical footer
         fit: [126, 378],
         align: 'center',
         margins: {top: 40, bottom: 0, right: 0, left: 0}
@@ -153,7 +156,7 @@ function Photos() {
 
 if (test.printing) {
   var p = new Photos()
-  const png = imagedatauri.encodeFromFile("portrait.png").then(res => {
+  const png = imagedatauri.encodeFromFile("static/blankportrait.png").then(res => {
     p.store(res, function() {
       p.store(res, function() {
         p.store(res, function() {
@@ -177,6 +180,13 @@ app.get('/ping', function (req, res) {
 
 app.get('/credits', function (req, res) {
   res.send(credits.toString())
+})
+
+app.set('views', 'views')
+app.set('view engine', 'ejs')
+
+app.get("/booth", function(req, res) {
+  res.render("photobooth.ejs", {theme: themeurl})
 })
 
 const crypto = require('crypto');
@@ -403,7 +413,7 @@ if (test.serial) {
 }
 
 chromeLauncher.launch({
-  startingUrl: 'http://127.0.0.1:3000/static/photobooth.html',
+  startingUrl: 'http://127.0.0.1:3000/booth',
   chromeFlags: flags
 }).then(chrome => {
   winston.info('Chrome debugging port running on %d', chrome.port);
